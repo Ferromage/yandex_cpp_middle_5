@@ -10,31 +10,38 @@ double CrossProduct(Point2D p1, Point2D middle, Point2D p2) {
     return new_p1.Cross(new_p2);
 }
 
-std::vector<Point2D> GrahamScan(std::span<Point2D> points) {
-    if (points.size() < 3) {
-        throw std::logic_error("At least three points are required for convex hull.");
-    }
-
-    auto smallest = *std::min_element(points.begin(), points.end());
-
-    std::sort(points.begin() + 1, points.end(), [&smallest](const Point2D &p1, const Point2D &p2) {
-        static const auto precision = 1e-10;
-
-        double cross = CrossProduct(p1, smallest, p2);
-        if (std::abs(cross) < precision) {
-            return smallest.DistanceTo(p1) < smallest.DistanceTo(p2);
+std::expected<std::vector<Point2D>, std::string> GrahamScan(std::span<Point2D> points) noexcept {
+    try {
+        if (points.size() < 3) {
+            throw std::logic_error("At least three points are required for convex hull.");
         }
-        return cross > 0;
-    });
 
-    StackForGrahamScan hull;
-    for (const auto &new_p : points) {
-        while (hull.Size() > 1 && CrossProduct(hull.NextToTop(), hull.Top(), new_p) > 0.0) {
-            hull.Pop();
+        auto smallest = *std::min_element(points.begin(), points.end());
+
+        std::sort(points.begin() + 1, points.end(), [&smallest](const Point2D &p1, const Point2D &p2) {
+            static const auto precision = 1e-10;
+
+            double cross = CrossProduct(p1, smallest, p2);
+            if (std::abs(cross) < precision) {
+                return smallest.DistanceTo(p1) < smallest.DistanceTo(p2);
+            }
+            return cross > 0;
+        });
+
+        StackForGrahamScan hull;
+        for (const auto &new_p : points) {
+            while (hull.Size() > 1 && CrossProduct(hull.NextToTop(), hull.Top(), new_p) > 0.0) {
+                hull.Pop();
+            }
+            hull.Push(new_p);
         }
-        hull.Push(new_p);
-    }
 
-    return std::vector{hull.Extract()};}
+        return std::vector{hull.Extract()};
+    } catch (const std::exception &ex) {
+        return std::unexpected(ex.what());
+    } catch (...) {
+        return std::unexpected("Something went wrong(1)");
+    }
+}
 
 }  // namespace geometry::convex_hull

@@ -11,4 +11,6 @@ std::vector<std::pair<Shape, Shape>> FindAllCollisions(std::span<const Shape> sh
 
 std::optional<size_t> FindHighestShape(std::span<const Shape> shapes);
 
+std::optional<size_t> FindLowestShape(std::span<const Shape> shapes);
+
 }  // namespace geometry::utils
