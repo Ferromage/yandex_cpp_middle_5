@@ -3,7 +3,6 @@
 #include "queries.hpp"
 #include <algorithm>
 #include <functional>
-#include <iostream>
 
 namespace geometry::utils {
 // Разбивает строку на слова (по пробелам), игнорируя лишние пробелы
@@ -219,6 +218,10 @@ std::vector<Shape> ParseShapes(std::string_view input) {
 using Shape = std::variant<Line, Triangle, Rectangle, RegularPolygon, Circle, Polygon>;
 
 std::vector<std::pair<Shape, Shape>> FindAllCollisions(std::span<const Shape> shapes) {
+    if (shapes.empty()) {
+        return {};
+    }
+
     std::vector<std::pair<Shape, Shape>> collisions;
     collisions.reserve((shapes.size() * shapes.size()) / 2);
 

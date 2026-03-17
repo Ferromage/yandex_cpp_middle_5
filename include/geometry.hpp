@@ -87,6 +87,10 @@ struct BoundingBox {
     [[nodiscard]] constexpr double Width() const noexcept { return max_x - min_x; }
     [[nodiscard]] constexpr double Height() const noexcept { return max_y - min_y; }
     [[nodiscard]] constexpr Point2D Center() const noexcept { return {(min_x + max_x) / 2, (min_y + max_y) / 2}; }
+
+    [[nodiscard]] constexpr bool operator==(const BoundingBox &other) const noexcept {
+        return min_x == other.min_x && min_y == other.min_y && max_x == other.max_x && max_y == other.max_y;
+    }
 };
 
 struct Line {
@@ -106,6 +110,10 @@ struct Line {
         return {Point2D{start.x, start.y}, {end.x, end.y}};
     }
     [[nodiscard]] constexpr Lines2D<2> Lines() const noexcept { return {{start.x, end.x}, {start.y, end.y}}; }
+
+    [[nodiscard]] constexpr bool operator==(const Line &other) const noexcept {
+        return start == other.start && end == other.end;
+    }
 };
 
 struct Triangle {
@@ -123,6 +131,10 @@ struct Triangle {
     [[nodiscard]] constexpr Point2D Center() const noexcept { return (a + b + c) / 3.0; }
 
     [[nodiscard]] constexpr Lines2D<4> Lines() const noexcept { return {{a.x, b.x, c.x, a.x}, {a.y, b.y, c.y, a.y}}; }
+
+    [[nodiscard]] constexpr bool operator==(const Triangle &other) const noexcept {
+        return a == other.a && b == other.b && c == other.c;
+    }
 };
 
 struct Rectangle {
@@ -150,6 +162,10 @@ struct Rectangle {
     [[nodiscard]] constexpr Lines2D<5> Lines() const noexcept {
         return {{bottom_left.x, bottom_left.x, bottom_left.x + width, bottom_left.x + width, bottom_left.x},
                 {bottom_left.y, bottom_left.y + height, bottom_left.y + height, bottom_left.y, bottom_left.y}};
+    }
+
+    [[nodiscard]] constexpr bool operator==(const Rectangle &other) const noexcept {
+        return bottom_left == other.bottom_left && width == other.width && height == other.height;
     }
 };
 
@@ -188,6 +204,10 @@ struct RegularPolygon {
         lines.PushBack(lines.Front());
         return lines;
     }
+
+    [[nodiscard]] constexpr bool operator==(const RegularPolygon &other) const noexcept {
+        return center_p == other.center_p && radius == other.radius && sides == other.sides;
+    }
 };
 
 struct Circle {
@@ -222,6 +242,10 @@ struct Circle {
         lines.PushBack(lines.Front());
         return lines;
     }
+
+    [[nodiscard]] constexpr bool operator==(const Circle &other) const noexcept {
+        return center_p == other.center_p && radius == other.radius;
+    }
 };
 
 class Polygon {
@@ -250,6 +274,10 @@ public:
         return lines;
     }
 
+    [[nodiscard]] constexpr bool operator==(const Polygon &other) const noexcept {
+        return points_ == other.points_ && bounding_box_ == other.bounding_box_;
+    }
+
 private:
     void CalculateBoundBox() {
         double min_x = points_[0].x, max_x = points_[0].x;
@@ -274,6 +302,14 @@ private:
 };
 
 using Shape = std::variant<Line, Triangle, Rectangle, RegularPolygon, Circle, Polygon>;
+
+inline bool operator==(const Shape &lhs, const Shape &rhs) noexcept {
+    if (lhs.index() != rhs.index()) {
+        return false;
+    }
+    return std::visit([&](const auto &item1, const auto &item2) { return item1 == item2; }, lhs, rhs);
+}
+
 }  // namespace geometry
 
 template <>
